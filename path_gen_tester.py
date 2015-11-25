@@ -7,7 +7,7 @@ def main(argv=None):
     if (len(filename) == 0):
         filename = "demo2.png"
     array = PG.getPixelArrayForFilename(filename)
-    PG.printBlackEnoughArray(array)
+    # PG.printBlackEnoughArray(array)
     array = PG.getBoolArray(array)
     # PG.printPixelArray(array)
     paths = PG.getRawPaths(array)
@@ -24,9 +24,11 @@ def main(argv=None):
 
     w.create_rectangle(0, 0, len(array[0])*20, len(array)*20,)
 
+    scale = 400/len(array)
+
     for vec in paths:
         for edge in vec:
-            w.create_line(edge[0][1]*20, edge[0][0]*20, edge[1][1]*20, edge[1][0]*20)
+            w.create_line(edge[0][1]*scale, edge[0][0]*scale, edge[1][1]*scale, edge[1][0]*scale)
 
 
     gFrame.mainloop()

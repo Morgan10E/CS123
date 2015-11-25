@@ -164,13 +164,24 @@ def getInversionMask(path, array):
     return mask
 
 def floodFill(mask, loc):
-    if mask[loc[0]][loc[1]] == 1:
-        return
-    mask[loc[0]][loc[1]] = 1
-    floodFill(mask, tuple(numpy.add(loc, UP)))
-    floodFill(mask, tuple(numpy.add(loc, RIGHT)))
-    floodFill(mask, tuple(numpy.add(loc, LEFT)))
-    floodFill(mask, tuple(numpy.add(loc, DOWN)))
+    q = Queue.Queue()
+    q.put(loc)
+    while not q.empty():
+        loc = q.get()
+        if mask[loc[0]][loc[1]] == 1:
+            continue
+        mask[loc[0]][loc[1]] = 1
+        q.put(tuple(numpy.add(loc, UP)))
+        q.put(tuple(numpy.add(loc, RIGHT)))
+        q.put(tuple(numpy.add(loc, LEFT)))
+        q.put(tuple(numpy.add(loc, DOWN)))
+    # if mask[loc[0]][loc[1]] == 1:
+    #     return
+    # mask[loc[0]][loc[1]] = 1
+    # floodFill(mask, tuple(numpy.add(loc, UP)))
+    # floodFill(mask, tuple(numpy.add(loc, RIGHT)))
+    # floodFill(mask, tuple(numpy.add(loc, LEFT)))
+    # floodFill(mask, tuple(numpy.add(loc, DOWN)))
 
 def invertForMask(array, mask):
     height = len(array)
