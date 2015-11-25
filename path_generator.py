@@ -5,10 +5,10 @@ import Queue
 import numpy
 
 DARK_VAL = 150
-NORTH = (-1,0)
-EAST = (0,1)
-SOUTH = (1,0)
-WEST = (0,-1)
+UP = (-1,0)
+RIGHT = (0,1)
+DOWN = (1,0)
+LEFT = (0,-1)
 TURN_RIGHT = ((True, True),(True, False))
 GO_STRAIGHT = ((True, False),(True, False))
 
@@ -34,14 +34,24 @@ def printPixelArray(array):
             row = row + str(array[r][c]) + " "
         print row
 
+def print01Array(array):
+    for r in range(0, len(array)):
+        row = ""
+        for c in range(0, len(array[r])):
+            if array[r][c]:
+                row = row + "1 "
+            else:
+                row = row + "0 "
+        print row
+
 def printBlackEnoughArray(array):
     for r in range(0, len(array)):
         row = ""
         for c in range(0, len(array[r])):
             if isBlackEnough(array[r][c]):
-                row = row+"1"
+                row = row+" 1"
             else:
-                row = row+"0"
+                row = row+" 0"
         print row
 
 def isBlackEnough(pixel):
@@ -57,16 +67,24 @@ def getBoolArray(array):
     return boolArray
 
 def getRawPaths(array):
-    vec = []
+    allPaths = []
     height = len(array)
     width = len(array[0])
     for r in range(0, height):
         for c in range(0, width):
             if array[r][c]:
+                print "Getting path " + str(len(allPaths) + 1)
+                vec = []
                 vec.append(((r,c),(r+1,c)))
                 getNextStep((r+1, c), (r, c), array, vec)
-                return vec #NEED TO INVERT CONTENTS AND CONTINUE, NOT RETURN RIGHT AWAY
-    return vec
+                allPaths.append(vec)
+                mask = getInversionMask(vec, array)
+                # printPixelArray(mask)
+                invertForMask(array, mask)
+                # print01Array(array)
+                r = 0
+                c = 0
+    return allPaths
 
 def getNextStep(current, start, array, vec):
     # print vec
@@ -78,44 +96,86 @@ def getNextStep(current, start, array, vec):
     # print printPixelArray(square)
     if (square == TURN_RIGHT):
         # turn right
-        print "Turning Right"
-        if direction == NORTH:
+        # print "Turning Right"
+        if direction == UP:
             nextPoint = tuple(numpy.add(current, (0,1)))
-        if direction == EAST:
+        if direction == RIGHT:
             nextPoint = tuple(numpy.add(current, (1,0)))
-        if direction == SOUTH:
+        if direction == DOWN:
             nextPoint = tuple(numpy.add(current, (0,-1)))
-        if direction == WEST:
+        if direction == LEFT:
             nextPoint = tuple(numpy.add(current, (-1,0)))
     elif (square == GO_STRAIGHT):
-        print "Going Straight"
+        # print "Going Straight"
         nextPoint = tuple(numpy.add(current, direction))
     else:
         # go left
-        print "Going Left"
-        if direction == NORTH:
+        # print "Going Left"
+        if direction == UP:
             nextPoint = tuple(numpy.add(current, (0,-1)))
-        if direction == EAST:
+        if direction == RIGHT:
             nextPoint = tuple(numpy.add(current, (-1,0)))
-        if direction == SOUTH:
+        if direction == DOWN:
             nextPoint = tuple(numpy.add(current, (0,1)))
-        if direction == WEST:
+        if direction == LEFT:
             nextPoint = tuple(numpy.add(current, (1,0)))
     vec.append((current, nextPoint))
     getNextStep(nextPoint,start,array,vec)
 
+# rotates 90 degrees to the right
 def rotated(array):
     return tuple(zip(*array[::-1]))
 
 #orients it to always act as if our direction is 'up' for comparison to TURN_RIGHT/GO_STRAIGHT
 def getSurroundingSquare((r,c), array, direction):
     square = ((array[r-1][c-1], array[r-1][c]),(array[r][c-1], array[r][c]))
-    if direction == NORTH:
+    if direction == UP:
         return square
     square = rotated(square)
-    if direction == WEST:
+    if direction == LEFT:
         return square
     square = rotated(square)
-    if direction == SOUTH:
+    if direction == DOWN:
         return square
     return rotated(square)
+
+def getDirection(edge):
+    return tuple(numpy.subtract(edge[1],edge[0]))
+
+def getInversionMask(path, array):
+    height = len(array)
+    width = len(array[0])
+    mask = [[0 for x in range(0,width)] for x in range(0,height)]
+    for edge in path:
+        direction = getDirection(edge)
+        if direction == DOWN:
+            mask[edge[0][0]][edge[0][1]] = 1
+        elif direction == LEFT:
+            mask[edge[1][0]][edge[1][1]] = 1
+        elif direction == UP:
+            mask[edge[1][0]][edge[1][1] - 1] = 1
+        else:
+            mask[edge[0][0] - 1][edge[0][1]] = 1
+    firstEdge = path[0]
+    secondEdge = path[1]
+    secondDir = getDirection(secondEdge)
+
+    floodFill(mask, tuple(numpy.add(secondEdge[1], (1,1))))
+    return mask
+
+def floodFill(mask, loc):
+    if mask[loc[0]][loc[1]] == 1:
+        return
+    mask[loc[0]][loc[1]] = 1
+    floodFill(mask, tuple(numpy.add(loc, UP)))
+    floodFill(mask, tuple(numpy.add(loc, RIGHT)))
+    floodFill(mask, tuple(numpy.add(loc, LEFT)))
+    floodFill(mask, tuple(numpy.add(loc, DOWN)))
+
+def invertForMask(array, mask):
+    height = len(array)
+    width = len(array[0])
+    for r in range(0, height):
+        for c in range(0, width):
+            if mask[r][c] == 1:
+                array[r][c] = not array[r][c]
