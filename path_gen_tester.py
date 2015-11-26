@@ -15,6 +15,7 @@ def main(argv=None):
     original = copy.deepcopy(array)
     # PG.printPixelArray(array)
     paths = PG.getRawPaths(array)
+    paths = PG.combinePaths(paths)
     # mask = PG.getInversionMask(vec, array)
     # PG.printPixelArray(mask)
     # PG.invertForMask(array, mask)

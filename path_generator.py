@@ -212,3 +212,50 @@ def invertForMask(array, mask):
         for c in range(0, width):
             if mask[r][c] == 1:
                 array[r][c] = not array[r][c]
+
+def getD(coord1, coord2):
+    return max(abs(coord1[0] - coord2[0]), abs(coord1[1] - coord2[1]))
+
+def getDistance(coord1, coord2):
+    return numpy.sqrt(numpy.power(coord1[0]-coord2[0], 2) + numpy.power(coord1[1]-coord2[1], 2))
+
+def getDistToLine(start, end, point, L):
+    T = ((point[0]-start[0])*(end[0]-start[0]) + (point[1]-start[1])*(end[0]-start[0]))/L
+    return getDistance(point, (start[0]+T*(end[0]-start[0]), start[1]+T*(end[1]-start[1])))
+
+def isStraight(path, smoothFactor):
+    if len(path) == 0 or len(path) == 1:
+        return True
+    start = path[0][0]
+    end = path[len(path) - 1][0]
+    L = getDistance(start, end)
+    for edge in path:
+        point = edge[0]
+        if getDistToLine(start, end, point, L) > smoothFactor:
+            return False
+    return True
+
+def combinePaths(allPaths, smoothFactor = 1): #DON'T KNOW IF YOU CAN CHANGE smoothFactor WITHOUT MESSING EVERYTHING UP
+    newPaths = []
+    i = 1
+    for path in allPaths:
+        print "Compressing path " + i
+        newPaths.append(combinePath(path, smoothFactor))
+        i = i + 1
+    return newPaths
+
+def combinePath(path, smoothFactor):
+    permCopy = copy.deepcopy(path)
+    newPath = []
+    # length = len(path)
+    start = 0
+    end = 3
+    while end < len(path):
+        while end < len(path) and isStraight(path[start:end], smoothFactor):
+            end = end + 1
+        end = end - 1
+        newPath.append((path[start][0], path[end][0]))
+        start = end
+        end = start + 2
+    newPath.append((path[start][0], path[0][0]))
+    return newPath
