@@ -164,17 +164,26 @@ def getInversionMask(path, array):
     return mask
 
 def floodFill(mask, loc):
+    height = len(mask)
+    width = len(mask[0])
     q = Queue.Queue()
     q.put(loc)
     while not q.empty():
         loc = q.get()
-        if mask[loc[0]][loc[1]] == 1:
+        if loc[0] < 0 or loc[1] < 0 or loc[0] >= height or loc[1] >= width or mask[loc[0]][loc[1]] == 1:
             continue
         mask[loc[0]][loc[1]] = 1
         q.put(tuple(numpy.add(loc, UP)))
         q.put(tuple(numpy.add(loc, RIGHT)))
         q.put(tuple(numpy.add(loc, LEFT)))
         q.put(tuple(numpy.add(loc, DOWN)))
+    if mask[0][0] == 1:
+        for r in range(0, height):
+            for c in range(0, width):
+                if mask[r][c] == 1:
+                    mask[r][c] = 0
+                else:
+                    mask[r][c] = 1
     # if mask[loc[0]][loc[1]] == 1:
     #     return
     # mask[loc[0]][loc[1]] = 1
