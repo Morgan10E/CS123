@@ -25,7 +25,7 @@ def getPixelArrayForFilename(filename):
     array = [[0 for x in range(0,width)] for x in range(0,height)]
     for r in range(0, height):
         for c in range(0, width):
-            array[r][c] = pixelList[r*height + c]
+            array[r][c] = pixelList[r*width + c]
     return array
 
 def printPixelArray(array):
@@ -73,6 +73,8 @@ def getRawPaths(array):
     width = len(array[0])
     for r in range(0, height):
         for c in range(0, width):
+            if len(allPaths) > 25:
+                return allPaths
             if array[r][c]:
                 print "Getting path " + str(len(allPaths) + 1)
                 vec = []
