@@ -3,6 +3,7 @@
 from PIL import Image
 import Queue
 import numpy
+import copy
 
 DARK_VAL = 150
 UP = (-1,0)
@@ -160,7 +161,17 @@ def getInversionMask(path, array):
     secondEdge = path[1]
     secondDir = getDirection(secondEdge)
 
-    floodFill(mask, tuple(numpy.add(secondEdge[1], (1,1))))
+    outline = copy.deepcopy(mask)
+
+    floodFill(mask, tuple(numpy.add(firstEdge[1], (-1,-1))))
+    # printPixelArray(mask)
+
+    for r in range(0, height):
+        for c in range(0, width):
+            if outline[r][c] == 1:
+                mask[r][c] = 1
+    # printPixelArray(mask)
+
     return mask
 
 def floodFill(mask, loc):
