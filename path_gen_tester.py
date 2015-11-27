@@ -15,7 +15,7 @@ def main(argv=None):
     original = copy.deepcopy(array)
     # PG.printPixelArray(array)
     paths = PG.getRawPaths(array)
-    paths = PG.combinePaths(paths)
+    paths = PG.combinePaths(paths, 0.5)
     # mask = PG.getInversionMask(vec, array)
     # PG.printPixelArray(mask)
     # PG.invertForMask(array, mask)
@@ -26,6 +26,7 @@ def main(argv=None):
 
     w = tk.Canvas(gFrame, width=800, height=600)
     w.pack()
+    w.configure(background="gray")
 
     w.create_rectangle(0, 0, len(array[0])*20, len(array)*20,)
 
@@ -42,7 +43,7 @@ def main(argv=None):
     for vec in paths:
         for edge in vec:
             w.create_line(edge[0][1]*scale, edge[0][0]*scale, edge[1][1]*scale, edge[1][0]*scale, fill=COLORS[i%6])
-        i = i + 1
+            i = i + 1
 
 
     gFrame.mainloop()

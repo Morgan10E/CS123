@@ -73,8 +73,8 @@ def getRawPaths(array):
     width = len(array[0])
     for r in range(0, height):
         for c in range(0, width):
-            if len(allPaths) > 25:
-                return allPaths
+            # if len(allPaths) > 25:
+            #     return allPaths
             if array[r][c]:
                 print "Getting path " + str(len(allPaths) + 1)
                 vec = []
@@ -216,22 +216,65 @@ def invertForMask(array, mask):
 def getD(coord1, coord2):
     return max(abs(coord1[0] - coord2[0]), abs(coord1[1] - coord2[1]))
 
+def lineMagnitude (x1, y1, x2, y2):
+    lineMagnitude = numpy.sqrt(numpy.power((x2 - x1), 2)+ numpy.power((y2 - y1), 2))
+    return lineMagnitude
+
+#Calc minimum distance from a point and a line segment (i.e. consecutive vertices in a polyline).
+def DistancePointLine (point, start, end):
+    #http://local.wasp.uwa.edu.au/~pbourke/geometry/pointline/source.vba
+    px = point[1]
+    py = point[0]
+    x1 = start[1]
+    y1 = start[0]
+    x2 = end[1]
+    y2 = end[0]
+    LineMag = lineMagnitude(x1, y1, x2, y2)
+
+    if LineMag < 0.00000001:
+        DistancePointLine = 9999
+        return DistancePointLine
+
+    u1 = (((px - x1) * (x2 - x1)) + ((py - y1) * (y2 - y1)))
+    u = u1 / (LineMag * LineMag)
+
+    if (u < 0.00001) or (u > 1):
+        #// closest point does not fall within the line segment, take the shorter distance
+        #// to an endpoint
+        ix = lineMagnitude(px, py, x1, y1)
+        iy = lineMagnitude(px, py, x2, y2)
+        if ix > iy:
+            DistancePointLine = iy
+        else:
+            DistancePointLine = ix
+    else:
+        # Intersecting point is on the line, use the formula
+        ix = x1 + u * (x2 - x1)
+        iy = y1 + u * (y2 - y1)
+        DistancePointLine = lineMagnitude(px, py, ix, iy)
+
+    return DistancePointLine
+
+def DistTo(coord1, coord2):
+    return numpy.power(coord1[0]-coord2[0], 2) + numpy.power(coord1[1]-coord2[1], 2)
+
 def getDistance(coord1, coord2):
-    return numpy.sqrt(numpy.power(coord1[0]-coord2[0], 2) + numpy.power(coord1[1]-coord2[1], 2))
+    return numpy.sqrt(DistTo(coord1, coord2))
 
 def getDistToLine(start, end, point, L):
-    T = ((point[0]-start[0])*(end[0]-start[0]) + (point[1]-start[1])*(end[0]-start[0]))/L
-    return getDistance(point, (start[0]+T*(end[0]-start[0]), start[1]+T*(end[1]-start[1])))
+    T = ((point[0]-start[0])*(end[0]-start[0]) + (point[1]-start[1])*(end[1]-start[1]))/L
+    print T
+    return DistTo(point, (start[0]+T*(end[0]-start[0]), start[1]+T*(end[1]-start[1])))
 
 def isStraight(path, smoothFactor):
     if len(path) == 0 or len(path) == 1:
         return True
     start = path[0][0]
     end = path[len(path) - 1][0]
-    L = getDistance(start, end)
+    L = DistTo(start, end)
     for edge in path:
         point = edge[0]
-        if getDistToLine(start, end, point, L) > smoothFactor:
+        if DistancePointLine(point, start, end) > smoothFactor:
             return False
     return True
 
@@ -239,7 +282,7 @@ def combinePaths(allPaths, smoothFactor = 1): #DON'T KNOW IF YOU CAN CHANGE smoo
     newPaths = []
     i = 1
     for path in allPaths:
-        print "Compressing path " + i
+        print "Compressing path " + str(i)
         newPaths.append(combinePath(path, smoothFactor))
         i = i + 1
     return newPaths
